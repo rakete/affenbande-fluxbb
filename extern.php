@@ -411,10 +411,13 @@ if ($action == 'feed')
 
 				$cur_topic['message'] = parse_message($cur_topic['message'], $cur_topic['hide_smilies']);
 
+                $result_post = $db->query('SELECT id FROM '.$db->prefix.'posts WHERE topic_id='.$cur_topic['id'].' ORDER BY posted DESC LIMIT 1') or error('Unable to fetch post id', __FILE__, __LINE__, $db->error());
+                $cur_post_id = $db->result($result_post,0,0);
+
 				$item = array(
 					'id'			=>	$cur_topic['id'],
 					'title'			=>	$cur_topic['subject'],
-					'link'			=>	'/viewtopic.php?id='.$cur_topic['id'].($order_posted ? '' : '&action=new'),
+                    'link'			=>	'/viewtopic.php?pid='.$cur_post_id.'#p'.$cur_post_id,
 					'description'	=>	$cur_topic['message'],
 					'author'		=>	array(
 						'name'	=> $order_posted ? $cur_topic['poster'] : $cur_topic['last_poster']
