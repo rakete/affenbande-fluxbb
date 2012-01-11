@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2008-2010 FluxBB
+ * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
@@ -25,7 +25,7 @@ class DBLayer
 	var $error_msg = 'Unknown';
 
 	var $datatype_transformations = array(
-		'/^SERIAL$/'	=>	'INT(10) UNSIGNED AUTO_INCREMENT'
+		'%^SERIAL$%'	=>	'INT(10) UNSIGNED AUTO_INCREMENT'
 	);
 
 
@@ -224,7 +224,7 @@ class DBLayer
 
 		return array(
 			'name'		=> 'MySQL Improved (InnoDB)',
-			'version'	=> preg_replace('/^([^-]+).*$/', '\\1', $this->result($result))
+			'version'	=> preg_replace('%^([^-]+).*$%', '\\1', $this->result($result))
 		);
 	}
 
@@ -250,7 +250,7 @@ class DBLayer
 		$result = $this->query('SHOW INDEX FROM '.($no_prefix ? '' : $this->prefix).$table_name);
 		while ($cur_index = $this->fetch_assoc($result))
 		{
-			if ($cur_index['Key_name'] == ($no_prefix ? '' : $this->prefix).$table_name.'_'.$index_name)
+			if (strtolower($cur_index['Key_name']) == strtolower(($no_prefix ? '' : $this->prefix).$table_name.'_'.$index_name))
 			{
 				$exists = true;
 				break;
@@ -318,6 +318,16 @@ class DBLayer
 			return true;
 
 		return $this->query('DROP TABLE '.($no_prefix ? '' : $this->prefix).$table_name) ? true : false;
+	}
+
+
+	function rename_table($old_table, $new_table, $no_prefix = false)
+	{
+		// If there new table exists and the old one doesn't, then we're happy
+		if ($this->table_exists($new_table, $no_prefix) && !$this->table_exists($old_table, $no_prefix))
+			return true;
+
+		return $this->query('ALTER TABLE '.($no_prefix ? '' : $this->prefix).$old_table.' RENAME TO '.($no_prefix ? '' : $this->prefix).$new_table) ? true : false;
 	}
 
 

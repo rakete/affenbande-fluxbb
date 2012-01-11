@@ -1,12 +1,12 @@
 <?php
 
 /**
- * Copyright (C) 2008-2010 FluxBB
+ * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
 
-define('PUN_ROOT', './');
+define('PUN_ROOT', dirname(__FILE__).'/');
 require PUN_ROOT.'include/common.php';
 
 
@@ -63,7 +63,7 @@ require PUN_ROOT.'header.php';
 
 ?>
 <div class="blockform">
-	<h2><span><?php echo $lang_common['User list'] ?></span></h2>
+	<h2><span><?php echo $lang_search['User search'] ?></span></h2>
 	<div class="box">
 		<form id="userlist" method="get" action="userlist.php">
 			<div class="inform">
@@ -119,6 +119,7 @@ while ($cur_group = $db->fetch_assoc($result))
 </div>
 
 <div id="users1" class="blocktable">
+	<h2><span><?php echo $lang_common['User list'] ?></span></h2>
 	<div class="box">
 		<div class="inbox">
 			<table cellspacing="0">

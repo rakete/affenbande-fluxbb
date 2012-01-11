@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2008-2010 FluxBB
+ * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
@@ -10,11 +10,11 @@ if (!defined('PUN_ROOT'))
 	exit('The constant PUN_ROOT must be defined and point to a valid FluxBB installation root directory.');
 
 // Define the version and database revision that this code was written for
-define('FORUM_VERSION', '1.4.2');
+define('FORUM_VERSION', '1.4.8');
 
-define('FORUM_DB_REVISION', 8);
-define('FORUM_SI_REVISION', 1);
-define('FORUM_PARSER_REVISION', 1);
+define('FORUM_DB_REVISION', 15);
+define('FORUM_SI_REVISION', 2);
+define('FORUM_PARSER_REVISION', 2);
 
 // Block prefetch requests
 if (isset($_SERVER['HTTP_X_MOZ']) && $_SERVER['HTTP_X_MOZ'] == 'prefetch')
@@ -38,10 +38,6 @@ if (file_exists(PUN_ROOT.'config.php'))
 if (defined('FORUM'))
 	define('PUN', FORUM);
 
-// If PUN isn't defined, config.php is missing or corrupt
-if (!defined('PUN'))
-	exit('The file \'config.php\' doesn\'t exist or is corrupt. Please run <a href="install.php">install.php</a> to install FluxBB first.');
-
 // Load the functions script
 require PUN_ROOT.'include/functions.php';
 
@@ -53,6 +49,13 @@ forum_remove_bad_characters();
 
 // Reverse the effect of register_globals
 forum_unregister_globals();
+
+// If PUN isn't defined, config.php is missing or corrupt
+if (!defined('PUN'))
+{
+	header('Location: install.php');
+	exit;
+}
 
 // Record the start time (will be used to calculate the generation time for the page)
 $pun_start = get_microtime();
@@ -67,8 +70,8 @@ setlocale(LC_CTYPE, 'C');
 if (get_magic_quotes_runtime())
 	set_magic_quotes_runtime(0);
 
-// Strip slashes from GET/POST/COOKIE (if magic_quotes_gpc is enabled)
-if (get_magic_quotes_gpc())
+// Strip slashes from GET/POST/COOKIE/REQUEST/FILES (if magic_quotes_gpc is enabled)
+if (!defined('FORUM_DISABLE_STRIPSLASHES') && get_magic_quotes_gpc())
 {
 	function stripslashes_array($array)
 	{
@@ -79,6 +82,13 @@ if (get_magic_quotes_gpc())
 	$_POST = stripslashes_array($_POST);
 	$_COOKIE = stripslashes_array($_COOKIE);
 	$_REQUEST = stripslashes_array($_REQUEST);
+	if (is_array($_FILES))
+	{
+		// Don't strip valid slashes from tmp_name path on Windows
+		foreach ($_FILES AS $key => $value)
+			$_FILES[$key]['tmp_name'] = str_replace('\\', '\\\\', $value['tmp_name']);
+		$_FILES = stripslashes_array($_FILES);
+	}
 }
 
 // If a cookie name is not specified in config.php, we use the default (pun_cookie)
@@ -117,10 +127,13 @@ if (!defined('PUN_CONFIG_LOADED'))
 
 // Verify that we are running the proper database schema revision
 if (!isset($pun_config['o_database_revision']) || $pun_config['o_database_revision'] < FORUM_DB_REVISION ||
-		!isset($pun_config['o_searchindex_revision']) || $pun_config['o_searchindex_revision'] < FORUM_SI_REVISION ||
-		!isset($pun_config['o_parser_revision']) || $pun_config['o_parser_revision'] < FORUM_PARSER_REVISION ||
-		version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
-	exit('Your FluxBB database is out-of-date and must be upgraded in order to continue. Please run <a href="'.PUN_ROOT.'db_update.php">db_update.php</a> in order to complete the upgrade process.');
+	!isset($pun_config['o_searchindex_revision']) || $pun_config['o_searchindex_revision'] < FORUM_SI_REVISION ||
+	!isset($pun_config['o_parser_revision']) || $pun_config['o_parser_revision'] < FORUM_PARSER_REVISION ||
+	version_compare($pun_config['o_cur_version'], FORUM_VERSION, '<'))
+{
+	header('Location: db_update.php');
+	exit;
+}
 
 // Enable output buffering
 if (!defined('PUN_DISABLE_BUFFERING'))
@@ -181,3 +194,6 @@ if (!defined('PUN_SEARCH_MIN_WORD'))
 	define('PUN_SEARCH_MIN_WORD', 3);
 if (!defined('PUN_SEARCH_MAX_WORD'))
 	define('PUN_SEARCH_MAX_WORD', 20);
+
+if (!defined('FORUM_MAX_COOKIE_SIZE'))
+	define('FORUM_MAX_COOKIE_SIZE', 4048);

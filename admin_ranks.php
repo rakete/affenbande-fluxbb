@@ -1,7 +1,7 @@
 <?php
 
 /**
- * Copyright (C) 2008-2010 FluxBB
+ * Copyright (C) 2008-2012 FluxBB
  * based on code by Rickard Andersson copyright (C) 2002-2008 PunBB
  * License: http://www.gnu.org/licenses/gpl.html GPL version 2 or higher
  */
@@ -9,7 +9,7 @@
 // Tell header.php to use the admin template
 define('PUN_ADMIN_CONSOLE', 1);
 
-define('PUN_ROOT', './');
+define('PUN_ROOT', dirname(__FILE__).'/');
 require PUN_ROOT.'include/common.php';
 require PUN_ROOT.'include/common_admin.php';
 
@@ -31,7 +31,7 @@ if (isset($_POST['add_rank']))
 	if ($rank == '')
 		message($lang_admin_ranks['Must enter title message']);
 
-	if ($min_posts == '' || preg_match('/[^0-9]/', $min_posts))
+	if ($min_posts == '' || preg_match('%[^0-9]%', $min_posts))
 		message($lang_admin_ranks['Must be integer message']);
 
 	// Make sure there isn't already a rank with the same min_posts value
@@ -64,7 +64,7 @@ else if (isset($_POST['update']))
 	if ($rank == '')
 		message($lang_admin_ranks['Must enter title message']);
 
-	if ($min_posts == '' || preg_match('/[^0-9]/', $min_posts))
+	if ($min_posts == '' || preg_match('%[^0-9]%', $min_posts))
 		message($lang_admin_ranks['Must be integer message']);
 
 	// Make sure there isn't already a rank with the same min_posts value
@@ -113,7 +113,7 @@ generate_admin_menu('ranks');
 	<div class="blockform">
 		<h2><span><?php echo $lang_admin_ranks['Ranks head'] ?></span></h2>
 		<div class="box">
-			<form id="ranks" method="post" action="admin_ranks.php?action=foo">
+			<form id="ranks" method="post" action="admin_ranks.php">
 				<div class="inform">
 					<fieldset>
 						<legend><?php echo $lang_admin_ranks['Add rank subhead'] ?></legend>
