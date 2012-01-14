@@ -417,7 +417,7 @@ if ($action == 'feed')
 				$item = array(
 					'id'			=>	$cur_topic['id'],
 					'title'			=>	$cur_topic['subject'],
-                    'link'			=>	'/viewtopic.php?pid='.$cur_post_id.'#p'.$cur_post_id,
+					'link'			=>	'/viewtopic.php?pid='.$cur_post_id.'#p'.$cur_post_id,
 					'description'	=>	$cur_topic['message'],
 					'author'		=>	array(
 						'name'	=> $order_posted ? $cur_topic['poster'] : $cur_topic['last_poster']
