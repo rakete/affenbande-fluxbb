@@ -35,7 +35,7 @@ if (isset($_POST['form_sent']) && $action == 'in')
 	{
 		$form_password_hash = pun_hash($form_password); // Will result in a SHA-1 hash
 
-		// If there is a salt in the database we have upgraded from 1.3-legacy though havent yet logged in
+		// If there is a salt in the database we have upgraded from 1.3-legacy though haven't yet logged in
 		if (!empty($cur_user['salt']))
 		{
 			if (sha1($cur_user['salt'].sha1($form_password)) == $cur_user['password']) // 1.3 used sha1(salt.sha1(pass))
@@ -122,7 +122,7 @@ else if ($action == 'forget' || $action == 'forget_2')
 		require PUN_ROOT.'include/email.php';
 
 		// Validate the email address
-		$email = strtolower(trim($_POST['req_email']));
+		$email = strtolower(pun_trim($_POST['req_email']));
 		if (!is_valid_email($email))
 			$errors[] = $lang_common['Invalid email'];
 

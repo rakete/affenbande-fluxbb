@@ -82,7 +82,7 @@ function preparse_bbcode($text, &$errors, $is_signature = false)
 	$temp = preg_replace($re_list, 'preparse_list_tag(\'$2\', \'$1\')', $text);
 
 	// If the regex failed
-	if ($temp === null)
+	if (is_null($temp))
 		$errors[] = $lang_common['BBCode list size error'];
 	else
 		$text = str_replace('*'."\0".']', '*]', $temp);
@@ -144,7 +144,6 @@ function strip_empty_bbcode($text)
 		list($inside, $text) = extract_blocks($text, '[code]', '[/code]');
 
 	// Remove empty tags
-	while (($new_text = preg_replace('%\[(b|u|s|ins|del|em|i|h|colou?r|quote|img|url|email|list|topic|post|forum|user|youtube)(?:\=[^\]]*)?\]\s*\[/\1\]%', '', $text)) !== NULL)
 	{
 		if ($new_text != $text)
 			$text = $new_text;
@@ -166,7 +165,7 @@ function strip_empty_bbcode($text)
 	}
 
 	// Remove empty code tags
-	while (($new_text = preg_replace('%\[(code)\]\s*\[/\1\]%', '', $text)) !== NULL)
+	while (!is_null($new_text = preg_replace('%\[(code)\]\s*\[/\1\]%', '', $text)))
 	{
 		if ($new_text != $text)
 			$text = $new_text;
@@ -183,7 +182,7 @@ function strip_empty_bbcode($text)
 //
 function preparse_tags($text, &$errors, $is_signature = false)
 {
-	global $lang_common, $pun_config;
+	global $lang_common, $pun_config, $pun_user;
 
 	// Start off by making some arrays of bbcode tags and what we need to do with each one
 
@@ -197,6 +196,8 @@ function preparse_tags($text, &$errors, $is_signature = false)
 	$tags_nested = array('quote' => $pun_config['o_quote_depth'], 'list' => 5, '*' => 5);
 	// Tags to ignore the contents of completely (just code)
 	$tags_ignore = array('code');
+	// Tags not allowed
+	$tags_forbidden = array();
 	// Block tags, block tags can only go within another block tag, they cannot be in a normal tag
 	$tags_block = array('quote', 'code', 'list', 'h', '*');
 	// Inline tags, we do not allow new lines in these
@@ -220,6 +221,10 @@ function preparse_tags($text, &$errors, $is_signature = false)
 	);
 	// Tags we can automatically fix bad nesting
 	$tags_fix = array('quote', 'b', 'i', 'u', 's', 'ins', 'del', 'em', 'color', 'colour', 'url', 'email', 'h', 'topic', 'post', 'forum', 'user');
+
+	// Disallow URL tags
+	if ($pun_user['g_post_links'] != '1')
+		$tags_forbidden[] = 'url';
 
 	$split_text = preg_split('%(\[[\*a-zA-Z0-9-/]*?(?:=.*?)?\])%', $text, -1, PREG_SPLIT_DELIM_CAPTURE|PREG_SPLIT_NO_EMPTY);
 
@@ -376,6 +381,17 @@ function preparse_tags($text, &$errors, $is_signature = false)
 			$new_text .= $current;
 
 			continue;
+		}
+
+		// Is the tag forbidden?
+		if (in_array($current_tag, $tags_forbidden))
+		{
+			if (isset($lang_common['BBCode error tag '.$current_tag.' not allowed']))
+				$errors[] = sprintf($lang_common['BBCode error tag '.$current_tag.' not allowed']);
+			else
+				$errors[] = sprintf($lang_common['BBCode error tag not allowed'], $current_tag);
+
+			return false;
 		}
 
 		if ($current_nest)
@@ -675,7 +691,7 @@ function handle_img_tag($url, $is_signature = false, $alt = null)
 {
 	global $lang_common, $pun_user;
 
-	if ($alt == null)
+	if (is_null($alt))
 		$alt = basename($url);
 
 	$img_tag = '<a href="'.$url.'">&lt;'.$lang_common['Image link'].' - '.$alt.'&gt;</a>';
