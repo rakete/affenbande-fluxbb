@@ -751,9 +751,9 @@ function do_bbcode($text, $is_signature = false)
 	$pattern[] = '#\[colou?r=([a-zA-Z]{3,20}|\#[0-9a-fA-F]{6}|\#[0-9a-fA-F]{3})](.*?)\[/colou?r\]#ms';
 	$pattern[] = '#\[h\](.*?)\[/h\]#ms';
 
-    $replace[] = '<iframe width="480" height="390" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
-    $replace[] = '<iframe width="480" height="390" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
-    $replace[] = '<iframe width="480" height="390" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
+    $replace[] = '<iframe width="480" height="300" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
+    $replace[] = '<iframe width="480" height="300" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
+    $replace[] = '<iframe width="480" height="300" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
 	$replace[] = '<strong>$1</strong>';
 	$replace[] = '<em>$1</em>';
 	$replace[] = '<span class="bbu">$1</span>';
