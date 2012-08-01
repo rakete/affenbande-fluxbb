@@ -70,7 +70,7 @@ function preparse_bbcode($text, &$errors, $is_signature = false)
 	{
 		global $lang_profile;
 
-		if (preg_match('%\[/?(?:quote|code|list|h|youtube)\b[^\]]*\]%i', $text))
+		if (preg_match('%\[/?(?:quote|code|list|h)\b[^\]]*\]%i', $text))
 			$errors[] = $lang_profile['Signature quote/code/list/h'];
 	}
 
@@ -144,6 +144,7 @@ function strip_empty_bbcode($text)
 		list($inside, $text) = extract_blocks($text, '[code]', '[/code]');
 
 	// Remove empty tags
+	while (!is_null($new_text = preg_replace('%\[(b|u|s|ins|del|em|i|h|colou?r|quote|img|url|email|list|topic|post|forum|user)(?:\=[^\]]*)?\]\s*\[/\1\]%', '', $text)))
 	{
 		if ($new_text != $text)
 			$text = $new_text;
@@ -187,7 +188,7 @@ function preparse_tags($text, &$errors, $is_signature = false)
 	// Start off by making some arrays of bbcode tags and what we need to do with each one
 
 	// List of all the tags
-	$tags = array('quote', 'code', 'b', 'i', 'u', 's', 'ins', 'del', 'em', 'color', 'colour', 'youtube', 'url', 'email', 'img', 'list', '*', 'h', 'topic', 'post', 'forum', 'user');
+	$tags = array('quote', 'code', 'b', 'i', 'u', 's', 'ins', 'del', 'em', 'color', 'colour', 'url', 'email', 'img', 'list', '*', 'h', 'topic', 'post', 'forum', 'user');
 	// List of tags that we need to check are open (You could not put b,i,u in here then illegal nesting like [b][i][/b][/i] would be allowed)
 	$tags_opened = $tags;
 	// and tags we need to check are closed (the same as above, added it just in case)
@@ -201,7 +202,7 @@ function preparse_tags($text, &$errors, $is_signature = false)
 	// Block tags, block tags can only go within another block tag, they cannot be in a normal tag
 	$tags_block = array('quote', 'code', 'list', 'h', '*');
 	// Inline tags, we do not allow new lines in these
-	$tags_inline = array('b', 'i', 'u', 's', 'ins', 'del', 'em', 'color', 'colour', 'h', 'topic', 'post', 'forum', 'user', 'youtube');
+	$tags_inline = array('b', 'i', 'u', 's', 'ins', 'del', 'em', 'color', 'colour', 'h', 'topic', 'post', 'forum', 'user');
 	// Tags we trim interior space
 	$tags_trim = array('img');
 	// Tags we remove quotes from the argument
@@ -756,15 +757,15 @@ function do_bbcode($text, $is_signature = false)
 
     $pattern[] = '#\[youtube\]\[url=http://www\.youtube\.com/watch\?v=([^\[]{11})\][^\[]+\[/url\]\[/youtube\]#';
     $pattern[] = '#\[youtube\]\[url\]http://www\.youtube\.com/watch\?v=([^\[]{11})\[/url\]\[/youtube\]#';
-	$pattern[] = '#\[b\](.*?)\[/b\]#ms';
-	$pattern[] = '#\[i\](.*?)\[/i\]#ms';
-	$pattern[] = '#\[u\](.*?)\[/u\]#ms';
-	$pattern[] = '#\[s\](.*?)\[/s\]#ms';
-	$pattern[] = '#\[del\](.*?)\[/del\]#ms';
-	$pattern[] = '#\[ins\](.*?)\[/ins\]#ms';
-	$pattern[] = '#\[em\](.*?)\[/em\]#ms';
-	$pattern[] = '#\[colou?r=([a-zA-Z]{3,20}|\#[0-9a-fA-F]{6}|\#[0-9a-fA-F]{3})](.*?)\[/colou?r\]#ms';
-    $pattern[] = '#\[h\](.*?)\[/h\]#ms';
+	$pattern[] = '%\[b\](.*?)\[/b\]%ms';
+	$pattern[] = '%\[i\](.*?)\[/i\]%ms';
+	$pattern[] = '%\[u\](.*?)\[/u\]%ms';
+	$pattern[] = '%\[s\](.*?)\[/s\]%ms';
+	$pattern[] = '%\[del\](.*?)\[/del\]%ms';
+	$pattern[] = '%\[ins\](.*?)\[/ins\]%ms';
+	$pattern[] = '%\[em\](.*?)\[/em\]%ms';
+	$pattern[] = '%\[colou?r=([a-zA-Z]{3,20}|\#[0-9a-fA-F]{6}|\#[0-9a-fA-F]{3})](.*?)\[/colou?r\]%ms';
+	$pattern[] = '%\[h\](.*?)\[/h\]%ms';
 
     $replace[] = '<iframe width="480" height="300" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
     $replace[] = '<iframe width="480" height="300" src="http://www.youtube.com/embed/$1?rel=0" frameborder="0"></iframe>';
@@ -776,7 +777,7 @@ function do_bbcode($text, $is_signature = false)
 	$replace[] = '<ins>$1</ins>';
 	$replace[] = '<em>$1</em>';
 	$replace[] = '<span style="color: $1">$2</span>';
-    $replace[] = '</p><h5>$1</h5><p>';
+	$replace[] = '</p><h5>$1</h5><p>';
 
 	if (($is_signature && $pun_config['p_sig_img_tag'] == '1') || (!$is_signature && $pun_config['p_message_img_tag'] == '1'))
 	{
@@ -832,11 +833,12 @@ function do_bbcode($text, $is_signature = false)
 //
 function do_clickable($text)
 {
-    $text = ' '.$text;
+	$text = ' '.$text;
 
 	$text = ucp_preg_replace('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(https?|ftp|news){1}://([\p{L}\p{N}\-]+\.([\p{L}\p{N}\-]+\.)*[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%uie', 'stripslashes(\'$1$2$3$4\').handle_url_tag(\'$5://$6\', \'$5://$6\', true).stripslashes(\'$4$10$11$12\')', $text);
 	$text = ucp_preg_replace('%(?<=[\s\]\)])(<)?(\[)?(\()?([\'"]?)(www|ftp)\.(([\p{L}\p{N}\-]+\.)*[\p{L}\p{N}]+(:[0-9]+)?(/(?:[^\s\[]*[^\s.,?!\[;:-])?)?)\4(?(3)(\)))(?(2)(\]))(?(1)(>))(?![^\s]*\[/(?:url|img)\])%uie', 'stripslashes(\'$1$2$3$4\').handle_url_tag(\'$5.$6\', \'$5.$6\', true).stripslashes(\'$4$10$11$12\')', $text);
-    return substr($text, 1);
+
+	return substr($text, 1);
 }
 
 
